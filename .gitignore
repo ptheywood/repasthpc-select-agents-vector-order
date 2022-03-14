@@ -1,0 +1,19 @@
+# Singularity image files
+*.sif
+*.simg
+
+# output/log files
+*.out
+*.log
+*.txt
+
+# Compilation object files
+*.o
+*.d
+
+# Makefile related files
+env
+env*
+
+# Binary files
+bin/

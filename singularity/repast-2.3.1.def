@@ -1,0 +1,63 @@
+BootStrap: library
+From: ubuntu:20.04
+
+%files 
+
+%post
+    # Ensure apt repositories are up to date 
+    apt-get -y update
+    # Install software-properties common to enable universe for mpich + some utils
+    apt-get install -y software-properties-common time dirmngr wget
+    apt-get -y update
+    # Enable the universe repository for mpich
+    add-apt-repository universe
+
+    # Install repast-hpc buiild dependencies
+    apt-get install -y ca-certificates openssl curl gcc g++ gdb make zlib1g-dev mpich
+
+    # Build and install repast_hpc into /opt
+    wget https://github.com/Repast/repast.hpc/releases/download/v2.3.1/repast_hpc-2.3.1.tgz
+    tar -xzvf repast_hpc-2.3.1.tgz
+    rm repast_hpc-2.3.1.tgz
+    cd repast_hpc-2.3.1/MANUAL_INSTALL
+    # Create the installation location in /opt
+    mkdir -p /opt/repast_hpc
+    # Set the BASE_DIR variable in the install script to a location in the image, i.e. not home
+    sed -i "s#\$HOME/sfw#/opt/repast_hpc#g" install.sh 
+    chmod +x install.sh
+    ./install.sh curl
+    ./install.sh netcdf
+    ./install.sh boost
+    ./install.sh rhpc
+    # Clean up some files
+    cd ../../
+    rm -rf repast_hpc-2.3.1
+    # Clean up the apt cache and lists.
+    apt-get clean -y
+    rm -rf /var/lib/apt/lists/*
+
+%environment
+    # Set a number of environment variables so mpic++ can find boost/repasthpc include/lib directories
+    export BOOST_ROOT="/opt/repast_hpc/boost-1_61_0"
+    export LD_LIBRARY_PATH="/opt/repast_hpc/boost-1_61_0/lib:${LD_LIBRARY_PATH}"
+    export LIBRARY_PATH="/opt/repast_hpc/boost-1_61_0/lib:${LIBRARY_PATH}"
+    export CPLUS_INCLUDE_PATH="/opt/repast_hpc/boost-1_61_0/include:${CPLUS_INCLUDE_PATH}"
+    export REPASTVERSION="2.3.1"
+    export LD_LIBRARY_PATH="/opt/repast_hpc/repast_hpc-2.3.1/lib:${LD_LIBRARY_PATH}"
+    export LIBRARY_PATH="/opt/repast_hpc/repast_hpc-2.3.1/lib:${LIBRARY_PATH}"
+    export CPLUS_INCLUDE_PATH="/opt/repast_hpc/repast_hpc-2.3.1/include:${CPLUS_INCLUDE_PATH}"
+    export PATH="/opt/repast_hpc/repast_hpc-2.3.1/bin:${PATH}"
+    export MPICXX="mpicxx"
+
+%test 
+    # Output some version information for included tools
+    ls /opt/repast_hpc/repast_hpc-2.3.1/include
+    echo "path=${PATH}"
+    $MPICXX --version
+
+%labels
+    Author p.heywood@sheffield.ac.uk
+    Version v0.0.1
+
+%help 
+    Ubuntu20.04 container with mpich and repast_hpc 2.3.1

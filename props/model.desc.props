@@ -1,0 +1,5 @@
+random.seed=12
+count.of.agents=8
+count.to.select=4
+order.placementnew=1
+order.reverse=1
